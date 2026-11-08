@@ -635,8 +635,115 @@
   </div>
 
   <!-- ================= 3. PW-STYLE STUDENT & PARENT PORTAL (PART 6) ================= -->
-  <div id="studentPortalView" class="hidden">
-    <!-- ===== [PASTE PART 6 HTML HERE] ===== -->
+ <!-- ================= 3. PW-STYLE STUDENT & PARENT PORTAL (PART 6) ================= -->
+  <div id="studentPortalView" class="hidden" style="min-height:100vh; background:#F1F5F9;">
+    <!-- Top Sticky Header -->
+    <header style="background:#1E1B4B; color:#fff; padding:1rem 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <h2 id="stuPortalInstName" style="font-size:1.25rem; font-weight:800;">🎓 Global Institute Portal</h2>
+        <p id="stuPortalWelcome" style="font-size:0.85rem; color:#A5B4FC; margin-top:0.15rem;">Student Classroom & Parent Fee Desk</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <span class="badge" style="background:#DCFCE7; color:#166534;">Zero Late-Fee Policy</span>
+        <span class="badge" style="background:#38BDF8; color:#0F172A;" id="stuPortalBatchBadge">Batch</span>
+        <button class="btn btn-danger" style="padding:0.45rem 0.9rem; font-size:0.82rem;" onclick="logoutStudentPortal()">🚪 Sign Out</button>
+      </div>
+    </header>
+
+    <div style="max-width:1150px; margin:1.5rem auto; padding:0 1rem;">
+      <!-- Top Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h4>My Attendance</h4>
+          <div class="val" id="stuAttPct" style="color:var(--primary);">100%</div>
+          <p id="stuAttSub" style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">0 / 0 Days Present</p>
+        </div>
+        <div class="stat-card">
+          <h4>Monthly Tuition Fee</h4>
+          <div class="val" id="stuMonthlyFeeVal">$0</div>
+          <p style="font-size:0.78rem; color:#16A34A; margin-top:0.25rem;">$0.00 Late Fine Guaranteed</p>
+        </div>
+        <div class="stat-card">
+          <h4>Current Month Fee Status</h4>
+          <div class="val" id="stuCurrentFeeBadge" style="font-size:1.2rem; margin-top:0.35rem;">Checking...</div>
+        </div>
+        <div class="stat-card">
+          <h4>Unread Notices & Alerts</h4>
+          <div class="val" id="stuNoticeCount" style="color:var(--accent);">0</div>
+          <p style="font-size:0.78rem; color:var(--muted); margin-top:0.25rem;">Live Institute Broadcasts</p>
+        </div>
+      </div>
+
+      <!-- Main 2-Column Content -->
+      <div class="grid-2">
+        <!-- LEFT COLUMN: Classroom Homework, Notes & Notifications -->
+        <div>
+          <!-- Live Notification Bell Box -->
+          <div class="card-box">
+            <h3 style="margin-bottom:0.75rem;">🔔 Live Notifications, Reminders & Alerts</h3>
+            <div id="stuNoticesList" style="display:flex; flex-direction:column; gap:0.65rem;"></div>
+          </div>
+
+          <!-- Digital Classroom: Homework, Notes & Video Lectures -->
+          <div class="card-box">
+            <h3 style="margin-bottom:0.75rem;">📚 My Batch Homework, PDF Notes & Lectures</h3>
+            <div id="stuMaterialsList" style="display:flex; flex-direction:column; gap:0.75rem;"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: International Fee Payment Gateway & Receipts -->
+        <div>
+          <div class="card-box" style="border:2px solid var(--primary);">
+            <span class="badge" style="background:#EEF2FF; color:var(--primary); margin-bottom:0.5rem;">GLOBAL PARENT FEE DESK</span>
+            <h3>🌍 Pay Monthly Tuition Fee Online</h3>
+            <p style="font-size:0.83rem; color:var(--muted); margin-top:0.25rem; margin-bottom:1rem;">
+              Pay securely using your preferred global method below, then submit your Transaction Reference / UTR for instant receipt generation.
+            </p>
+
+            <!-- Dynamic Payment Options Box (Stripe, PayPal, UPI QR, Bank) -->
+            <div id="stuGatewayOptionsBox" style="background:#F8FAFC; padding:1rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1rem;"></div>
+
+            <!-- Submit Payment Proof / Reference Form -->
+            <form id="stuFeeSubmitForm">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Billing Month</label>
+                  <input type="month" id="stuPayMonth" required>
+                </div>
+                <div class="form-group">
+                  <label>Payment Method Used</label>
+                  <select id="stuPayMethod">
+                    <option value="Stripe / Card">💳 Stripe / Card</option>
+                    <option value="PayPal">🅿️ PayPal</option>
+                    <option value="UPI / QR Scan">📱 UPI / QR Scan</option>
+                    <option value="Bank Wire / Wise">🏦 Bank Wire / IBAN</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Transaction ID / UTR / Reference Number</label>
+                <input type="text" id="stuPayRef" required placeholder="e.g. TXN-98412034 or UPI Ref No.">
+              </div>
+              <button type="submit" class="btn btn-success btn-full">✅ Submit Payment for Verification</button>
+              <p id="stuPayMsg" style="margin-top:0.6rem; font-size:0.84rem; text-align:center; font-weight:600;"></p>
+            </form>
+
+            <!-- Past Fee Receipts Table -->
+            <h4 style="margin-top:1.25rem; font-size:0.82rem; color:var(--muted);">MY FEE PAYMENT HISTORY & INVOICES</h4>
+            <table>
+              <thead><tr><th>Month</th><th>Amount</th><th>Status</th><th>Receipt</th></tr></thead>
+              <tbody id="stuFeeHistoryBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Official Institute Rules Card -->
+          <div class="card-box">
+            <h3>📜 Official Institute Rules & Regulations</h3>
+            <pre id="stuRulesText" style="margin-top:0.6rem; white-space:pre-wrap; font-size:0.85rem; color:#334155; background:#F8FAFC; padding:0.9rem; border-radius:8px; border:1px solid var(--border);"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ================= 4. CORE JAVASCRIPT ENGINE ================= -->
@@ -1474,7 +1581,219 @@
     document.getElementById('navFeesBtn').addEventListener('click', loadFeesManager);
     document.getElementById('navNoticeBtn').addEventListener('click', loadNotificationsCenter);
 
-    // ===== [PASTE PART 6 JS HERE] =====
+    // ===== PART 6 JS: PW-STYLE STUDENT & PARENT PORTAL ENGINE =====
+
+    const stuMonthInput = document.getElementById('stuPayMonth');
+    if (stuMonthInput) stuMonthInput.value = new Date().toISOString().slice(0, 7);
+
+    // Handle Student / Parent Login (Requires Secret Institute Code + Roll/Phone + PIN)
+    document.getElementById('studentLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loginMsg = document.getElementById('loginMsg');
+      loginMsg.textContent = 'Verifying Student Credentials...';
+      loginMsg.style.color = '#4F46E5';
+
+      await loadInstituteSettings();
+      const enteredCode = document.getElementById('stuInstCode').value.trim().toUpperCase();
+      const requiredCode = (window.appConfig.institute_code || 'APEX-2026').toUpperCase();
+
+      if (enteredCode !== requiredCode) {
+        loginMsg.style.color = '#DC2626';
+        loginMsg.textContent = '❌ Invalid Secret Institute Code! Please ask your Institute Admin.';
+        return;
+      }
+
+      const idOrPhone = document.getElementById('stuLoginId').value.trim();
+      const pin = document.getElementById('stuPin').value.trim();
+
+      // Lookup student by student_code OR parent_phone
+      const { data: students } = await supabase
+        .from('students')
+        .select('*')
+        .eq('portal_pin', pin);
+
+      const matched = (students || []).find(s =>
+        (s.student_code && s.student_code.toUpperCase() === idOrPhone.toUpperCase()) ||
+        (s.parent_phone && s.parent_phone.replace(/\s+/g, '') === idOrPhone.replace(/\s+/g, '')) ||
+        (s.phone && s.phone.replace(/\s+/g, '') === idOrPhone.replace(/\s+/g, ''))
+      );
+
+      if (!matched) {
+        loginMsg.style.color = '#DC2626';
+        loginMsg.textContent = '❌ Invalid Student Roll Code / Phone or PIN!';
+        return;
+      }
+
+      if (matched.status && matched.status !== 'active') {
+        loginMsg.style.color = '#DC2626';
+        loginMsg.textContent = '🚫 Your Student Portal access has been locked by the Institute Owner.';
+        return;
+      }
+
+      window.activeStudent = matched;
+      loginMsg.textContent = '';
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('studentPortalView').classList.remove('hidden');
+      loadStudentPortalDashboard();
+    });
+
+    window.logoutStudentPortal = () => {
+      window.activeStudent = null;
+      document.getElementById('studentPortalView').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+    };
+
+    async function loadStudentPortalDashboard() {
+      const s = window.activeStudent;
+      if (!s) return;
+      await loadInstituteSettings();
+      const c = window.appConfig;
+      const sym = c.currency_symbol || '$';
+
+      // Header & Basic Info
+      document.getElementById('stuPortalInstName').textContent = '🎓 ' + c.institute_name;
+      document.getElementById('stuPortalWelcome').textContent = `Welcome, ${s.full_name} (${s.student_code || 'STU'}) — Parent & Student Portal`;
+      document.getElementById('stuMonthlyFeeVal').textContent = `${sym}${s.monthly_fee || 0}`;
+      document.getElementById('stuRulesText').textContent = c.rules_text || '';
+
+      // Batch Info
+      let batchName = 'Assigned Classroom';
+      if (s.batch_id) {
+        const { data: b } = await supabase.from('batches').select('*').eq('id', s.batch_id).single();
+        if (b) batchName = `${b.name} (${b.timing || b.subject || ''})`;
+      }
+      document.getElementById('stuPortalBatchBadge').textContent = batchName;
+
+      // 1. Attendance Calculation
+      const { data: att } = await supabase.from('attendance').select('*').eq('student_id', s.id);
+      const totalDays = (att || []).length;
+      const presentDays = (att || []).filter(r => r.status === 'present').length;
+      const pct = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 100;
+      const attEl = document.getElementById('stuAttPct');
+      attEl.textContent = pct + '%';
+      attEl.style.color = pct < (c.min_attendance_pct || 75) ? '#DC2626' : '#16A34A';
+      document.getElementById('stuAttSub').textContent = `${presentDays} Present / ${totalDays} Total Classes (Min Rule: ${c.min_attendance_pct || 75}%)`;
+
+      // 2. Live Notifications (All + Batch + Personal Student Alerts)
+      const { data: notices } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
+      const myNotices = (notices || []).filter(n =>
+        n.target_type === 'all' ||
+        (n.target_type === 'batch' && n.target_id === s.batch_id) ||
+        (n.target_type === 'student' && n.target_id === s.id)
+      );
+      document.getElementById('stuNoticeCount').textContent = myNotices.length;
+      document.getElementById('stuNoticesList').innerHTML = myNotices.length ? myNotices.map(n => `
+        <div style="padding:0.85rem; border-radius:8px; background:${n.category==='fee_reminder'?'#FEF3C7':'#F8FAFC'}; border-left:4px solid ${n.category==='fee_reminder'?'#D97706':'#4F46E5'};">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); margin-bottom:0.25rem;">
+            <b>${(n.category || 'NOTICE').toUpperCase()}</b>
+            <span>${new Date(n.created_at).toLocaleDateString()}</span>
+          </div>
+          <div style="font-weight:700; font-size:0.92rem; margin-bottom:0.2rem;">${n.title}</div>
+          <div style="font-size:0.85rem; color:#334155;">${n.message}</div>
+        </div>
+      `).join('') : '<p style="color:var(--muted); font-size:0.85rem;">No active notifications right now.</p>';
+
+      // 3. Batch Homework, Notes & Video Lectures
+      const { data: mats } = await supabase.from('study_materials').select('*').eq('batch_id', s.batch_id).order('created_at', { ascending: false });
+      document.getElementById('stuMaterialsList').innerHTML = (mats && mats.length) ? mats.map(m => `
+        <div style="padding:0.9rem; border-radius:8px; border:1px solid var(--border); background:#fff; display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+          <div>
+            <span class="badge" style="background:#EEF2FF; color:var(--primary);">${m.material_type.toUpperCase()} — ${m.subject}</span>
+            <h4 style="margin-top:0.35rem; font-size:0.95rem;">${m.title}</h4>
+            <p style="font-size:0.8rem; color:var(--muted); margin-top:0.15rem;">By ${m.faculty_name} • ${new Date(m.created_at).toLocaleDateString()}</p>
+          </div>
+          <div>
+            ${m.content_or_link.startsWith('http')
+              ? `<a href="${m.content_or_link}" target="_blank" class="btn" style="padding:0.45rem 0.85rem; font-size:0.8rem; text-decoration:none;">📂 Open Material</a>`
+              : `<span style="font-size:0.85rem; font-weight:600; color:#1E293B;">${m.content_or_link}</span>`
+            }
+          </div>
+        </div>
+      `).join('') : '<p style="color:var(--muted); font-size:0.85rem;">No homework or study notes uploaded for your batch yet.</p>';
+
+      // 4. Global Payment Gateways Box (Stripe, PayPal, Dynamic UPI QR, Bank Wire)
+      let gwHtml = `<div style="font-weight:700; margin-bottom:0.5rem; color:#1E293B;">Amount to Pay: ${sym}${s.monthly_fee || 0} (No Late Fee)</div><div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.6rem;">`;
+      if (c.stripe_link) gwHtml += `<a href="${c.stripe_link}" target="_blank" class="btn" style="padding:0.45rem 0.85rem; font-size:0.8rem; text-decoration:none;">💳 Pay via Stripe</a>`;
+      if (c.paypal_link) gwHtml += `<a href="${c.paypal_link}" target="_blank" class="btn" style="background:#0284C7; padding:0.45rem 0.85rem; font-size:0.8rem; text-decoration:none;">🅿️ Pay via PayPal</a>`;
+      gwHtml += `</div>`;
+
+      if (c.upi_id) {
+        const upiUri = `upi://pay?pa=${encodeURIComponent(c.upi_id)}&pn=${encodeURIComponent(c.institute_name)}&am=${s.monthly_fee || 0}&cu=INR`;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upiUri)}`;
+        gwHtml += `
+          <div style="display:flex; align-items:center; gap:0.85rem; margin-top:0.5rem; padding-top:0.5rem; border-top:1px dashed var(--border);">
+            <img src="${qrUrl}" alt="UPI QR" style="width:90px; height:90px; border-radius:8px; border:2px solid #fff;">
+            <div style="font-size:0.8rem;">
+              <b>📱 Scan UPI QR to Pay Exact Fee</b><br>
+              UPI ID: <code>${c.upi_id}</code>
+            </div>
+          </div>
+        `;
+      }
+      if (c.bank_details) {
+        gwHtml += `<div style="font-size:0.78rem; color:#475569; margin-top:0.5rem; white-space:pre-wrap;"><b>🏦 Bank / Wire Details:</b>\n${c.bank_details}</div>`;
+      }
+      document.getElementById('stuGatewayOptionsBox').innerHTML = gwHtml;
+
+      // 5. Fee History & Current Month Status
+      const curMonth = new Date().toISOString().slice(0, 7);
+      const { data: myFees } = await supabase.from('fees').select('*').eq('student_id', s.id).order('paid_date', { ascending: false });
+      const curMonthRecord = (myFees || []).find(f => f.month_year === curMonth);
+
+      const statusBadgeEl = document.getElementById('stuCurrentFeeBadge');
+      if (curMonthRecord && curMonthRecord.approval_status === 'approved') {
+        statusBadgeEl.innerHTML = `<span class="badge" style="background:#DCFCE7; color:#166534; font-size:0.9rem;">✅ PAID (${curMonth})</span>`;
+      } else if (curMonthRecord && curMonthRecord.approval_status === 'pending') {
+        statusBadgeEl.innerHTML = `<span class="badge" style="background:#FEF3C7; color:#92400E; font-size:0.9rem;">⏳ VERIFYING (${curMonth})</span>`;
+      } else {
+        statusBadgeEl.innerHTML = `<span class="badge" style="background:#FEE2E2; color:#991B1B; font-size:0.9rem;">⏳ DUE (${curMonth})</span>`;
+      }
+
+      document.getElementById('stuFeeHistoryBody').innerHTML = (myFees || []).map(f => `
+        <tr>
+          <td><b>${f.month_year}</b></td>
+          <td>${sym}${f.amount}</td>
+          <td>
+            <span class="badge" style="background:${f.approval_status==='approved'?'#DCFCE7':'#FEF3C7'}; color:${f.approval_status==='approved'?'#166534':'#92400E'};">
+              ${(f.approval_status || 'approved').toUpperCase()}
+            </span>
+          </td>
+          <td>
+            ${f.approval_status === 'approved'
+              ? `<button class="btn" style="padding:0.25rem 0.55rem; font-size:0.74rem; background:#0F172A;" onclick="printFeeInvoice('${s.full_name.replace(/'/g,"")}','${s.student_code||'STU'}',${f.amount},'${f.month_year}','${f.payment_method||'Online'}','${f.transaction_ref||'Verified'}')">🧾 Receipt</button>`
+              : '<span style="font-size:0.75rem; color:var(--muted);">Awaiting Admin</span>'
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Student / Parent Online Fee Reference Submission
+    document.getElementById('stuFeeSubmitForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const s = window.activeStudent;
+      if (!s) return;
+
+      const month_year = document.getElementById('stuPayMonth').value;
+      const payment_method = document.getElementById('stuPayMethod').value;
+      const transaction_ref = document.getElementById('stuPayRef').value.trim();
+      const msgEl = document.getElementById('stuPayMsg');
+
+      await supabase.from('fees').insert([{
+        student_id: s.id,
+        amount: Number(s.monthly_fee) || 0,
+        month_year,
+        payment_method,
+        transaction_ref,
+        status: 'pending',
+        approval_status: 'pending'
+      }]);
+
+      document.getElementById('stuPayRef').value = '';
+      msgEl.style.color = '#16A34A';
+      msgEl.textContent = '✅ Payment reference submitted! Once verified by the Institute Owner, your receipt will unlock.';
+      loadStudentPortalDashboard();
+    });
 
     // Initialize App
     checkSession();
