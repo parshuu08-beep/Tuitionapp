@@ -184,8 +184,93 @@
 
       <!-- TAB 2: OWNER RULES, REGULATIONS & GLOBAL GATEWAYS (PART 2) -->
       <section id="rulesTab" class="tab-section hidden">
-        <!-- ===== [PASTE PART 2 HTML HERE] ===== -->
-        <div class="card-box"><p>Part 2: Owner Rules, Currency, Permissions & Stripe/PayPal/UPI Config yahan aayega...</p></div>
+        <!-- ===== PART 2 HTML: OWNER MASTER CONTROL & GLOBAL GATEWAYS ===== -->
+        <div class="card-box">
+          <h3 style="margin-bottom: 0.4rem;">⚖️ Master Institute Governance, Currency & Global Payment Setup</h3>
+          <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem;">
+            Changes saved here instantly update across Teacher, Student, and Parent portals worldwide.
+          </p>
+
+          <form id="settingsForm">
+            <div class="grid-2">
+              <!-- Column 1: Identity, Currency & Academic Rules -->
+              <div>
+                <div class="form-group">
+                  <label>Institute / Academy Name</label>
+                  <input type="text" id="setInstName" required placeholder="Global Apex Academy">
+                </div>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label>Global Currency</label>
+                    <select id="setCurrencySelect">
+                      <option value="USD|$">🇺🇸 USD ($) — US Dollar</option>
+                      <option value="GBP|£">🇬🇧 GBP (£) — British Pound</option>
+                      <option value="EUR|€">🇪🇺 EUR (€) — Euro</option>
+                      <option value="AED|AED ">🇦🇪 AED — UAE Dirham</option>
+                      <option value="INR|₹">🇮🇳 INR (₹) — Indian Rupee</option>
+                      <option value="CAD|CA$">🇨🇦 CAD (CA$) — Canadian Dollar</option>
+                      <option value="AUD|A$">🇦🇺 AUD (A$) — Australian Dollar</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Monthly Fee Due Day (No Fine)</label>
+                    <input type="number" id="setDueDay" min="1" max="28" required placeholder="5">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>Mandatory Minimum Attendance (%)</label>
+                  <input type="number" id="setMinAtt" min="1" max="100" required placeholder="75">
+                </div>
+
+                <div class="form-group" style="background: #F8FAFC; padding: 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+                  <label style="margin-bottom: 0.6rem; color: var(--primary);">👨‍🏫 Faculty / Teacher Access Permissions</label>
+                  <label style="display:flex; align-items:center; gap:0.5rem; font-weight:500; text-transform:none; margin-bottom:0.4rem; cursor:pointer;">
+                    <input type="checkbox" id="setTeacherFee" style="width:auto;"> Allow Teachers to View Fee Ledger
+                  </label>
+                  <label style="display:flex; align-items:center; gap:0.5rem; font-weight:500; text-transform:none; margin-bottom:0.4rem; cursor:pointer;">
+                    <input type="checkbox" id="setTeacherEdit" style="width:auto;"> Allow Teachers to Add / Edit Students
+                  </label>
+                  <label style="display:flex; align-items:center; gap:0.5rem; font-weight:500; text-transform:none; cursor:pointer;">
+                    <input type="checkbox" id="setTeacherNotice" style="width:auto;"> Allow Teachers to Send Broadcast Notices
+                  </label>
+                </div>
+              </div>
+
+              <!-- Column 2: International Payment Gateways -->
+              <div>
+                <div class="form-group">
+                  <label>💳 Stripe Payment Link (Cards / Apple Pay / Google Pay)</label>
+                  <input type="url" id="setStripe" placeholder="https://buy.stripe.com/your_live_link">
+                </div>
+
+                <div class="form-group">
+                  <label>🅿️ PayPal.Me or PayPal Checkout Link (International)</label>
+                  <input type="url" id="setPaypal" placeholder="https://paypal.me/yourinstitute">
+                </div>
+
+                <div class="form-group">
+                  <label>📱 Instant UPI ID (For India / QR Auto-Generator)</label>
+                  <input type="text" id="setUpi" placeholder="institute@okaxis">
+                </div>
+
+                <div class="form-group">
+                  <label>🏦 Direct Bank Wire / Wise / IBAN / SWIFT Details</label>
+                  <textarea id="setBank" rows="2" placeholder="Bank Name, Account No, IBAN / SWIFT / IFSC Code..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.5rem;">
+              <label>📜 Official Institute Rules & Regulations (Displayed on Student & Parent Portal)</label>
+              <textarea id="setRules" rows="4" required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-success" id="saveSettingsBtn">💾 Save & Broadcast Global Settings</button>
+            <span id="settingsMsg" style="margin-left: 1rem; font-size: 0.88rem; font-weight: 600;"></span>
+          </form>
+        </div>
       </section>
 
       <!-- TAB 3: BATCHES & STUDENTS CRM (PART 3) -->
