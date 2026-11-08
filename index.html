@@ -1074,14 +1074,17 @@
       document.getElementById('stuBatchSelect').innerHTML = batchOptions;
       document.getElementById('matBatchSelect').innerHTML = batchOptions;
 
-      // 2. Faculty Roster (Owner Power: Block / Unblock / Delete)
+      // 2. Faculty Roster (Owner Power: Share Pass + Block / Unblock / Delete)
       const { data: facultyList } = await supabase.from('faculty').select('*').order('created_at');
       document.getElementById('facultyTableBody').innerHTML = (facultyList || []).map(f => `
         <tr>
           <td><b>${f.full_name}</b><br><span style="font-size:0.78rem; color:var(--muted);">${f.subject}</span></td>
           <td><code>${f.email_or_phone}</code><br><span style="font-size:0.78rem;">PIN: <b>${f.access_pin}</b></span></td>
           <td><span class="badge" style="background:${f.status==='active'?'#DCFCE7':'#FEE2E2'}; color:${f.status==='active'?'#166534':'#991B1B'};">${f.status.toUpperCase()}</span></td>
-          <td>
+          <td style="display:flex; gap:0.35rem; flex-wrap:wrap;">
+            <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#0EA5E9;" onclick="shareAccessPass('faculty','${f.full_name.replace(/'/g,"")}','${f.email_or_phone}','${f.access_pin}','${f.email_or_phone}')">
+              📲 Share Pass
+            </button>
             <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:${f.status==='active'?'#D97706':'#16A34A'};" onclick="toggleFacultyStatus('${f.id}','${f.status}')">
               ${f.status==='active' ? '🚫 Block' : '✅ Activate'}
             </button>
@@ -1103,7 +1106,7 @@
         </tr>
       `).join('');
 
-      // 4. Students Roster (Owner Power: Block/Left vs Active + Delete)
+      // 4. Students Roster (Owner Power: Share Pass + Block/Left vs Active + Delete)
       const { data: students } = await supabase.from('students').select('*').order('created_at', { ascending: false });
       window.allStudents = students || [];
       document.getElementById('studentTableBody').innerHTML = (students || []).map(s => `
@@ -1114,8 +1117,11 @@
           <td><b>${sym}${s.monthly_fee || 0}</b></td>
           <td><code>${s.portal_pin || '1234'}</code></td>
           <td><span class="badge" style="background:${s.status==='active'?'#DCFCE7':'#FEE2E2'}; color:${s.status==='active'?'#166534':'#991B1B'};">${(s.status||'active').toUpperCase()}</span></td>
-          <td>
+          <td style="display:flex; gap:0.35rem; flex-wrap:wrap;">
             ${!window.activeFaculty ? `
+              <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:#0EA5E9;" onclick="shareAccessPass('student','${s.full_name.replace(/'/g,"")}','${s.student_code||'STU'}','${s.portal_pin||'1234'}','${s.parent_phone||''}')">
+                📲 Share Pass
+              </button>
               <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:${s.status==='active'?'#D97706':'#16A34A'};" onclick="toggleStudentStatus('${s.id}','${s.status||'active'}')">
                 ${s.status==='active' ? '🚫 Mark Left/Block' : '✅ Re-Admit'}
               </button>
@@ -1126,6 +1132,34 @@
       `).join('');
     }
     window.loadPart3Data = loadPart3Data;
+
+    // 1-Click WhatsApp & Copy Welcome Login Pass Generator
+    window.shareAccessPass = (roleType, personName, loginId, pin, phoneStr) => {
+      const instName = window.appConfig.institute_name || 'Global Apex Academy';
+      const instCode = window.appConfig.institute_code || 'APEX-2026';
+      const portalUrl = window.location.origin + window.location.pathname;
+      const roleLabel = roleType === 'faculty' ? 'Faculty / Teacher' : 'Student / Parent';
+      const idLabel = roleType === 'faculty' ? 'Faculty Login ID' : 'Student Roll ID';
+
+      const passText =
+`🎓 *Welcome to ${instName}!*
+Your official *${roleLabel} Portal* is now active.
+
+🌐 *Portal Link:* ${portalUrl}
+🔐 *Secret Institute Code:* ${instCode}
+🆔 *${idLabel}:* ${loginId}
+🔑 *Secret Access PIN:* ${pin}
+
+_Select the '${roleLabel}' tab on the login screen and enter the above credentials to access your dashboard._`;
+
+      const cleanPhone = (phoneStr || '').replace(/[^0-9]/g, '');
+      if (cleanPhone && cleanPhone.length >= 7) {
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(passText)}`, '_blank');
+      } else {
+        navigator.clipboard?.writeText(passText);
+        alert('✅ Login Pass Copied to Clipboard! You can now paste it on WhatsApp or Email:\n\n' + passText);
+      }
+    };
 
     // Form Submissions: Batch, Faculty, Homework, Student
     document.getElementById('batchForm').addEventListener('submit', async (e) => {
