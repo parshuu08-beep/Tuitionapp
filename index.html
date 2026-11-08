@@ -360,7 +360,70 @@
       checkSession();
     });
 
-    // ===== [PASTE PART 2 JS HERE] =====
+// ===== PART 2 JS: OWNER SETTINGS & GATEWAY CONTROLLER =====
+    function populateSettingsForm() {
+      const c = window.appConfig;
+      const nameInput = document.getElementById('setInstName');
+      if (!nameInput) return;
+
+      nameInput.value = c.institute_name || '';
+      const curVal = `${c.currency_code || 'USD'}|${c.currency_symbol || '$'}`;
+      const sel = document.getElementById('setCurrencySelect');
+      if ([...sel.options].some(o => o.value === curVal)) sel.value = curVal;
+
+      document.getElementById('setDueDay').value = c.fee_due_day || 5;
+      document.getElementById('setMinAtt').value = c.min_attendance_pct || 75;
+      document.getElementById('setTeacherFee').checked = !!c.allow_teacher_fee_view;
+      document.getElementById('setTeacherEdit').checked = !!c.allow_teacher_student_edit;
+      document.getElementById('setTeacherNotice').checked = c.allow_teacher_send_notice !== false;
+      document.getElementById('setStripe').value = c.stripe_link || '';
+      document.getElementById('setPaypal').value = c.paypal_link || '';
+      document.getElementById('setUpi').value = c.upi_id || '';
+      document.getElementById('setBank').value = c.bank_details || '';
+      document.getElementById('setRules').value = c.rules_text || '';
+    }
+
+    // Auto-fill form whenever settings tab is clicked
+    document.getElementById('navRulesBtn').addEventListener('click', populateSettingsForm);
+
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('saveSettingsBtn');
+      const msg = document.getElementById('settingsMsg');
+      btn.textContent = 'Saving...';
+      msg.textContent = '';
+
+      const [currency_code, currency_symbol] = document.getElementById('setCurrencySelect').value.split('|');
+
+      const payload = {
+        institute_name: document.getElementById('setInstName').value.trim(),
+        currency_code,
+        currency_symbol,
+        fee_due_day: Number(document.getElementById('setDueDay').value) || 5,
+        min_attendance_pct: Number(document.getElementById('setMinAtt').value) || 75,
+        allow_teacher_fee_view: document.getElementById('setTeacherFee').checked,
+        allow_teacher_student_edit: document.getElementById('setTeacherEdit').checked,
+        allow_teacher_send_notice: document.getElementById('setTeacherNotice').checked,
+        stripe_link: document.getElementById('setStripe').value.trim(),
+        paypal_link: document.getElementById('setPaypal').value.trim(),
+        upi_id: document.getElementById('setUpi').value.trim(),
+        bank_details: document.getElementById('setBank').value.trim(),
+        rules_text: document.getElementById('setRules').value.trim(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('institute_settings').update(payload).eq('id', 1);
+      btn.textContent = '💾 Save & Broadcast Global Settings';
+
+      if (error) {
+        msg.style.color = '#DC2626';
+        msg.textContent = 'Error: ' + error.message;
+      } else {
+        msg.style.color = '#16A34A';
+        msg.textContent = '✅ Master Rules & Gateways Updated Live!';
+        await loadOverviewStats();
+      }
+    });
 
     // ===== [PASTE PART 3 JS HERE] =====
 
