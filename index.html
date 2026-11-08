@@ -275,8 +275,181 @@
 
       <!-- TAB 3: BATCHES & STUDENTS CRM (PART 3) -->
       <section id="batchesTab" class="tab-section hidden">
-        <!-- ===== [PASTE PART 3 HTML HERE] ===== -->
-        <div class="card-box"><p>Part 3: Batches & International Student Admission CRM yahan aayega...</p></div>
+        <!-- ===== PART 3 HTML: SECRET CODE, BATCHES, FACULTY & STUDENT ACCESS CONTROL ===== -->
+        
+        <!-- 1. Secret Institute Code Banner (Owner Only) -->
+        <div class="card-box" id="ownerCodeCard" style="background: #1E1B4B; color: #fff; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <span class="badge" style="background:#38BDF8; color:#0F172A;">SECURITY GATEKEEPER</span>
+            <h3 style="margin-top:0.4rem;">🔐 Secret Institute Login Code: <span id="displayInstCode" style="color:#38BDF8; font-family:monospace;">APEX-2026</span></h3>
+            <p style="font-size:0.82rem; color:#A5B4FC; margin-top:0.2rem;">No Teacher or Student can log in without this code. Change it anytime to revoke unauthorized access.</p>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <input type="text" id="newInstCodeInput" placeholder="New Code (e.g. INST-99)" style="padding:0.6rem; border-radius:8px; border:none; width:170px; font-weight:700;">
+            <button class="btn" style="background:#38BDF8; color:#0F172A;" onclick="updateInstituteCode()">Update Code</button>
+          </div>
+        </div>
+
+        <!-- 2. Create Batch & Manage Faculty (2 Columns) -->
+        <div class="grid-2" id="ownerCreationGrid">
+          <!-- Create Batch -->
+          <div class="card-box">
+            <h3>📚 Create New Batch / Class</h3>
+            <form id="batchForm" style="margin-top: 0.9rem;">
+              <div class="form-group">
+                <label>Batch Name</label>
+                <input type="text" id="batchName" required placeholder="e.g. Grade 10 — Physics & Math">
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Subject / Stream</label>
+                  <input type="text" id="batchSubject" required placeholder="Physics / JEE / SAT">
+                </div>
+                <div class="form-group">
+                  <label>Class Timing</label>
+                  <input type="text" id="batchTiming" required placeholder="Mon-Fri, 5:00 PM">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-full">➕ Create Batch</button>
+            </form>
+
+            <h4 style="margin-top:1.25rem; font-size:0.85rem; color:var(--muted);">ACTIVE BATCHES</h4>
+            <table>
+              <thead><tr><th>Batch</th><th>Subject</th><th>Timing</th><th>Action</th></tr></thead>
+              <tbody id="batchTableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- Owner Faculty Manager (Hire, Block or Delete Teacher) -->
+          <div class="card-box" id="facultyManagerCard">
+            <h3>👨‍🏫 Faculty / Teacher Access Control</h3>
+            <p style="font-size:0.8rem; color:var(--muted); margin-bottom:0.8rem;">Add teachers or instantly Block/Delete if a faculty member leaves the institute.</p>
+            <form id="facultyForm">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Teacher Full Name</label>
+                  <input type="text" id="facName" required placeholder="Prof. R. Sharma">
+                </div>
+                <div class="form-group">
+                  <label>Subject Specialization</label>
+                  <input type="text" id="facSubject" required placeholder="Mathematics">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Teacher Login ID (Email/Phone)</label>
+                  <input type="text" id="facLoginId" required placeholder="teacher1@inst.com">
+                </div>
+                <div class="form-group">
+                  <label>Secret Login PIN</label>
+                  <input type="text" id="facPin" required value="1234">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-full" style="background:#0F172A;">👨‍🏫 Grant Faculty Access</button>
+            </form>
+
+            <h4 style="margin-top:1.25rem; font-size:0.85rem; color:var(--muted);">FACULTY ROSTER (1-CLICK BLOCK / DELETE)</h4>
+            <table>
+              <thead><tr><th>Name & Subject</th><th>Login ID & PIN</th><th>Status</th><th>Owner Power</th></tr></thead>
+              <tbody id="facultyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Faculty & Owner: Homework, Notes & Lecture Uploader -->
+        <div class="card-box">
+          <h3>📝 Publish Homework, Study Notes & Lecture Links (For Students)</h3>
+          <form id="materialForm" style="margin-top: 0.9rem;">
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Target Batch</label>
+                <select id="matBatchSelect" required><option value="">Select Batch...</option></select>
+              </div>
+              <div class="form-group">
+                <label>Material Type & Subject</label>
+                <div style="display:flex; gap:0.5rem;">
+                  <select id="matType" style="width:45%;">
+                    <option value="homework">📒 Homework</option>
+                    <option value="notes">📄 PDF Notes</option>
+                    <option value="lecture">🎥 Video Lecture</option>
+                  </select>
+                  <input type="text" id="matSubject" required placeholder="Subject Name">
+                </div>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Topic / Title</label>
+                <input type="text" id="matTitle" required placeholder="e.g. Chapter 4 Laws of Motion DPP #2">
+              </div>
+              <div class="form-group">
+                <label>Homework Instructions or Google Drive / YouTube Link</label>
+                <input type="text" id="matContent" required placeholder="Solve Q1-Q15 or paste https://drive.google.com/...">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success">🚀 Publish to Student Classroom</button>
+          </form>
+
+          <h4 style="margin-top:1.25rem; font-size:0.85rem; color:var(--muted);">RECENTLY PUBLISHED HOMEWORK & NOTES</h4>
+          <table>
+            <thead><tr><th>Batch</th><th>Type</th><th>Title & Subject</th><th>Link / Details</th><th>By</th><th>Action</th></tr></thead>
+            <tbody id="materialTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 4. Student Admission CRM & Access Control (Active / Left / Blocked) -->
+        <div class="card-box">
+          <h3>👨‍🎓 Student Admission & Portal Access Control</h3>
+          <p style="font-size:0.82rem; color:var(--muted); margin-bottom:0.9rem;">If a student leaves the institute, click <b>Block/Left</b> to immediately lock their portal login.</p>
+          <form id="studentForm" style="margin-bottom:1.25rem;">
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Student Full Name</label>
+                <input type="text" id="stuName" required placeholder="Aarav Verma">
+              </div>
+              <div class="form-group">
+                <label>Assign Batch</label>
+                <select id="stuBatchSelect" required><option value="">Select Batch...</option></select>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Student Roll Code (Unique Login ID)</label>
+                <input type="text" id="stuCode" required placeholder="STU-101">
+              </div>
+              <div class="form-group">
+                <label>Parent WhatsApp / Phone (With Country Code)</label>
+                <input type="text" id="stuParentPhone" required placeholder="+14155552671 or +919876543210">
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Monthly Tuition Fee</label>
+                <input type="number" id="stuFee" required placeholder="150">
+              </div>
+              <div class="form-group">
+                <label>Student Portal PIN</label>
+                <input type="text" id="stuPinInput" required value="1234">
+              </div>
+            </div>
+            <button type="submit" class="btn" id="addStudentBtn">➕ Admit Student & Generate Portal Access</button>
+          </form>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Roll ID & Name</th>
+                <th>Batch</th>
+                <th>Parent Phone</th>
+                <th>Monthly Fee</th>
+                <th>Portal PIN</th>
+                <th>Status</th>
+                <th>Owner Power (Block / Delete)</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- TAB 4: SMART ATTENDANCE (PART 4) -->
