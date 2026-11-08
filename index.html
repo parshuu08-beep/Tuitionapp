@@ -3,14 +3,375 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TuitionApp</title>
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <title>TuitionApp Global — EdTech & Institute OS</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-dark: #3730A3;
+      --accent: #0EA5E9;
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --text: #0F172A;
+      --muted: #64748B;
+      --border: #E2E8F0;
+      --success: #16A34A;
+      --danger: #DC2626;
+      --warning: #D97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; }
+    .hidden { display: none !important; }
+
+    /* --- PW-STYLE 3-PORTAL LOGIN --- */
+    .auth-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.2rem; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); }
+    .auth-card { background: var(--card); width: 100%; max-width: 440px; border-radius: 16px; box-shadow: 0 20px 40px rgba(15,23,42,0.08); border: 1px solid var(--border); overflow: hidden; }
+    .auth-header { background: #1E1B4B; color: #fff; padding: 1.75rem 1.5rem; text-align: center; }
+    .auth-header h1 { font-size: 1.4rem; font-weight: 800; }
+    .auth-header p { font-size: 0.85rem; color: #A5B4FC; margin-top: 0.3rem; }
+    .role-tabs { display: flex; background: #F1F5F9; padding: 0.35rem; margin: 1.25rem 1.5rem 0; border-radius: 10px; gap: 0.25rem; }
+    .role-tab { flex: 1; padding: 0.6rem 0.4rem; border: none; background: transparent; font-size: 0.8rem; font-weight: 700; color: var(--muted); border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .role-tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+    .auth-body { padding: 1.5rem; }
+
+    /* --- REUSABLE FORMS & BUTTONS --- */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.35rem; color: #334155; text-transform: uppercase; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; background: #fff; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .btn { padding: 0.75rem 1.2rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.92rem; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-full { width: 100%; }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-warning { background: var(--warning); }
+    .badge { padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+
+    /* --- ENTERPRISE DASHBOARD LAYOUT --- */
+    .app-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #0F172A; color: #fff; padding: 1.25rem 0.85rem; display: flex; flex-direction: column; gap: 0.35rem; }
+    .brand-box { padding: 0.5rem 0.75rem 1.25rem; border-bottom: 1px solid #1E293B; margin-bottom: 0.75rem; }
+    .brand-box h2 { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .brand-box span { font-size: 0.75rem; color: #38BDF8; font-weight: 600; }
+    .nav-btn { background: transparent; color: #94A3B8; border: none; text-align: left; padding: 0.75rem 0.9rem; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 0.6rem; }
+    .nav-btn:hover, .nav-btn.active { background: var(--primary); color: #fff; }
+    .main-area { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 1rem; }
+
+    /* --- CARDS & GRIDS --- */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--card); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--border); }
+    .stat-card h4 { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; margin-bottom: 0.4rem; }
+    .stat-card .val { font-size: 1.75rem; font-weight: 800; color: var(--text); }
+    .card-box { background: var(--card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.25rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.9rem; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: #F8FAFC; font-weight: 700; color: #475569; font-size: 0.8rem; text-transform: uppercase; }
+
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 0.6rem; }
+      .brand-box { display: none; }
+      .nav-btn { white-space: nowrap; padding: 0.5rem 0.75rem; font-size: 0.82rem; }
+      .main-area { padding: 1rem; }
+    }
+    /* ===== [PASTE EXTRA CSS HERE] ===== */
+  </style>
 </head>
 <body>
-  <div style="background: var(--card-bg); padding: 2.5rem; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; border: 1px solid var(--border-color);">
-    <h1 style="color: var(--primary); margin-bottom: 0.5rem;">TuitionApp Setup Live</h1>
-    <p style="color: var(--text-muted);">Phase 0: Foundation & Supabase Connected</p>
+
+  <!-- ================= 1. PW-STYLE 3-PORTAL LOGIN VIEW ================= -->
+  <div id="loginView" class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1 id="loginInstituteTitle">🎓 Global Institute OS</h1>
+        <p>Enterprise Classroom, Governance & Global Fee Portal</p>
+      </div>
+
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="switchAuthRole('owner', this)">👑 Owner Admin</button>
+        <button class="role-tab" onclick="switchAuthRole('teacher', this)">👨‍🏫 Faculty</button>
+        <button class="role-tab" onclick="switchAuthRole('student', this)">👨‍🎓 Student / Parent</button>
+      </div>
+
+      <div class="auth-body">
+        <!-- Staff Login (Owner / Faculty) -->
+        <form id="staffLoginForm">
+          <div class="form-group">
+            <label id="staffEmailLabel">Owner Super-Admin Email</label>
+            <input type="email" id="email" required placeholder="admin@institute.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-full" id="loginBtn">Sign In as Institute Owner</button>
+        </form>
+
+        <!-- Student / Parent Login -->
+        <form id="studentLoginForm" class="hidden">
+          <div class="form-group">
+            <label>Student Phone or Roll Code</label>
+            <input type="text" id="stuLoginId" required placeholder="e.g. +1234567890 or STU-101">
+          </div>
+          <div class="form-group">
+            <label>Parent / Student Access PIN</label>
+            <input type="password" id="stuPin" required placeholder="Default PIN: 1234">
+          </div>
+          <button type="submit" class="btn btn-full" style="background: var(--accent);">Open Classroom & Fee Portal</button>
+        </form>
+
+        <p id="loginMsg" style="margin-top: 0.9rem; font-size: 0.85rem; text-align: center; font-weight: 600;"></p>
+      </div>
+    </div>
   </div>
-  <script type="module" src="./assets/js/supabase-client.js"></script>
+
+  <!-- ================= 2. OWNER & TEACHER COMMAND DASHBOARD ================= -->
+  <div id="appView" class="app-layout hidden">
+    <aside class="sidebar">
+      <div class="brand-box">
+        <h2 id="sidebarInstituteName">🎓 TuitionApp</h2>
+        <span id="roleBadgeText">OWNER SUPER-ADMIN</span>
+      </div>
+      <button class="nav-btn active" onclick="switchTab('overviewTab', this)">📊 Command Overview</button>
+      <button class="nav-btn" id="navRulesBtn" onclick="switchTab('rulesTab', this)">⚖️ Rules & Global Settings</button>
+      <button class="nav-btn" onclick="switchTab('batchesTab', this)">📚 Batches & Students</button>
+      <button class="nav-btn" onclick="switchTab('attendanceTab', this)">✅ Smart Attendance</button>
+      <button class="nav-btn" id="navFeesBtn" onclick="switchTab('feesTab', this)">🌍 Global Fees & Reminders</button>
+      <button class="nav-btn" id="navNoticeBtn" onclick="switchTab('noticeTab', this)">🔔 Notification Center</button>
+      <button class="nav-btn btn-danger" style="margin-top: auto;" id="logoutBtn">🚪 Sign Out</button>
+    </aside>
+
+    <main class="main-area">
+      <div class="top-bar">
+        <div>
+          <h2 id="pageTitle">Command Overview</h2>
+          <p id="policySubtitle" style="font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem;"></p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span class="badge" style="background:#DCFCE7; color:#166534;">Zero Late-Fee Policy</span>
+          <span class="badge" style="background:#EEF2FF; color:var(--primary);" id="currencyBadge">USD ($)</span>
+          <span id="userEmailBadge" style="font-size: 0.85rem; color: var(--muted); font-weight: 600;"></span>
+        </div>
+      </div>
+
+      <!-- TAB 1: COMMAND OVERVIEW -->
+      <section id="overviewTab" class="tab-section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Active Students</h4>
+            <div class="val" id="statStudents">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Active Batches</h4>
+            <div class="val" id="statBatches">0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Total Fee Revenue</h4>
+            <div class="val" id="statFees" style="color: var(--success);">$0</div>
+          </div>
+          <div class="stat-card">
+            <h4>Active Notifications</h4>
+            <div class="val" id="statNotices" style="color: var(--accent);">0</div>
+          </div>
+        </div>
+
+        <div class="card-box">
+          <h3>📜 Active Institute Constitution & Rules (Visible on Student/Parent Portal)</h3>
+          <pre id="overviewRulesBox" style="margin-top: 0.75rem; white-space: pre-wrap; font-size: 0.9rem; color: #334155; background: #F8FAFC; padding: 1rem; border-radius: 8px; border: 1px solid var(--border);"></pre>
+        </div>
+      </section>
+
+      <!-- TAB 2: OWNER RULES, REGULATIONS & GLOBAL GATEWAYS (PART 2) -->
+      <section id="rulesTab" class="tab-section hidden">
+        <!-- ===== [PASTE PART 2 HTML HERE] ===== -->
+        <div class="card-box"><p>Part 2: Owner Rules, Currency, Permissions & Stripe/PayPal/UPI Config yahan aayega...</p></div>
+      </section>
+
+      <!-- TAB 3: BATCHES & STUDENTS CRM (PART 3) -->
+      <section id="batchesTab" class="tab-section hidden">
+        <!-- ===== [PASTE PART 3 HTML HERE] ===== -->
+        <div class="card-box"><p>Part 3: Batches & International Student Admission CRM yahan aayega...</p></div>
+      </section>
+
+      <!-- TAB 4: SMART ATTENDANCE (PART 4) -->
+      <section id="attendanceTab" class="tab-section hidden">
+        <!-- ===== [PASTE PART 4 HTML HERE] ===== -->
+        <div class="card-box"><p>Part 4: Attendance & Automated Parent Alert yahan aayega...</p></div>
+      </section>
+
+      <!-- TAB 5: GLOBAL FEES & REMINDERS (PART 5) -->
+      <section id="feesTab" class="tab-section hidden">
+        <!-- ===== [PASTE PART 5 HTML HERE] ===== -->
+        <div class="card-box"><p>Part 5: International Fee Ledger, Polite Due Reminders (Zero Late Fee) & Approvals yahan aayega...</p></div>
+      </section>
+
+      <!-- TAB 6: NOTIFICATION CENTER (PART 5B) -->
+      <section id="noticeTab" class="tab-section hidden">
+        <!-- ===== [PASTE NOTICE HTML HERE] ===== -->
+        <div class="card-box"><p>Notification Broadcast & Fee Reminder Center yahan aayega...</p></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= 3. PW-STYLE STUDENT & PARENT PORTAL (PART 6) ================= -->
+  <div id="studentPortalView" class="hidden">
+    <!-- ===== [PASTE PART 6 HTML HERE] ===== -->
+  </div>
+
+  <!-- ================= 4. CORE JAVASCRIPT ENGINE ================= -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    // 1. SUPABASE CONNECTION
+    const supabaseUrl = 'https://tkbvjgpenwsslasfdexr.supabase.co';
+    const supabaseAnonKey = 'sb_publishable_pNv5z9WFjMn6xwFi6TJRXQ_xzPXVhbt';
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    window.supabase = supabase;
+
+    // GLOBAL STATE
+    window.appConfig = {
+      institute_name: 'Global Apex Academy',
+      currency_symbol: '$',
+      currency_code: 'USD',
+      fee_due_day: 5,
+      min_attendance_pct: 75,
+      allow_teacher_fee_view: false,
+      allow_teacher_student_edit: false,
+      allow_teacher_send_notice: true,
+      rules_text: ''
+    };
+    window.currentSelectedRole = 'owner';
+
+    // 2. LOGIN ROLE SWITCHER
+    window.switchAuthRole = (role, btnEl) => {
+      window.currentSelectedRole = role;
+      document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+      btnEl.classList.add('active');
+      document.getElementById('loginMsg').textContent = '';
+
+      const staffForm = document.getElementById('staffLoginForm');
+      const stuForm = document.getElementById('studentLoginForm');
+
+      if (role === 'student') {
+        staffForm.classList.add('hidden');
+        stuForm.classList.remove('hidden');
+      } else {
+        stuForm.classList.add('hidden');
+        staffForm.classList.remove('hidden');
+        document.getElementById('staffEmailLabel').textContent = role === 'owner' ? 'Owner Super-Admin Email' : 'Faculty / Teacher Email';
+        document.getElementById('loginBtn').textContent = role === 'owner' ? 'Sign In as Institute Owner' : 'Sign In as Faculty';
+      }
+    };
+
+    // 3. SIDEBAR TAB SWITCHER
+    window.switchTab = (tabId, btnEl) => {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      document.getElementById('pageTitle').textContent = btnEl ? btnEl.textContent.replace(/^[^\s]+\s/, '') : 'Dashboard';
+    };
+
+    // 4. LOAD MASTER INSTITUTE SETTINGS & RULES
+    async function loadInstituteSettings() {
+      const { data } = await supabase.from('institute_settings').select('*').eq('id', 1).single();
+      if (data) {
+        window.appConfig = data;
+        document.getElementById('loginInstituteTitle').textContent = '🎓 ' + data.institute_name;
+        document.getElementById('sidebarInstituteName').textContent = '🎓 ' + data.institute_name;
+        document.getElementById('currencyBadge').textContent = `${data.currency_code} (${data.currency_symbol})`;
+        document.getElementById('overviewRulesBox').textContent = data.rules_text;
+        document.getElementById('policySubtitle').textContent = `Fee Due Date: Day ${data.fee_due_day} of month (No Late Fine — Auto Notification Reminder Active) | Min Attendance: ${data.min_attendance_pct}%`;
+
+        // Enforce Teacher Restrictions
+        if (window.currentSelectedRole === 'teacher') {
+          document.getElementById('navRulesBtn').classList.add('hidden');
+          if (!data.allow_teacher_fee_view) document.getElementById('navFeesBtn').classList.add('hidden');
+          if (!data.allow_teacher_send_notice) document.getElementById('navNoticeBtn').classList.add('hidden');
+        } else {
+          document.getElementById('navRulesBtn').classList.remove('hidden');
+          document.getElementById('navFeesBtn').classList.remove('hidden');
+          document.getElementById('navNoticeBtn').classList.remove('hidden');
+        }
+      }
+    }
+    window.loadInstituteSettings = loadInstituteSettings;
+
+    // 5. LOAD LIVE OVERVIEW STATS
+    async function loadOverviewStats() {
+      await loadInstituteSettings();
+      const sym = window.appConfig.currency_symbol || '$';
+      const { count: studentCount } = await supabase.from('students').select('*', { count: 'exact', head: true });
+      const { count: batchCount } = await supabase.from('batches').select('*', { count: 'exact', head: true });
+      const { count: noticeCount } = await supabase.from('notifications').select('*', { count: 'exact', head: true });
+      const { data: feesData } = await supabase.from('fees').select('amount').eq('approval_status', 'approved');
+
+      const totalFees = (feesData || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+
+      document.getElementById('statStudents').textContent = studentCount || 0;
+      document.getElementById('statBatches').textContent = batchCount || 0;
+      document.getElementById('statNotices').textContent = noticeCount || 0;
+      document.getElementById('statFees').textContent = sym + totalFees.toLocaleString();
+    }
+    window.loadOverviewStats = loadOverviewStats;
+
+    // 6. AUTHENTICATION HANDLERS
+    const loginView = document.getElementById('loginView');
+    const appView = document.getElementById('appView');
+    const loginMsg = document.getElementById('loginMsg');
+
+    async function checkSession() {
+      await loadInstituteSettings();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        loginView.classList.add('hidden');
+        appView.classList.remove('hidden');
+        document.getElementById('userEmailBadge').textContent = session.user.email;
+        document.getElementById('roleBadgeText').textContent = window.currentSelectedRole === 'teacher' ? 'FACULTY MODE (RESTRICTED)' : 'OWNER SUPER-ADMIN';
+        loadOverviewStats();
+      } else {
+        loginView.classList.remove('hidden');
+        appView.classList.add('hidden');
+      }
+    }
+
+    document.getElementById('staffLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = 'Verifying Credentials...';
+      loginMsg.textContent = '';
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginMsg.style.color = '#DC2626';
+        loginMsg.textContent = error.message;
+        btn.textContent = 'Sign In';
+      } else {
+        checkSession();
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      checkSession();
+    });
+
+    // ===== [PASTE PART 2 JS HERE] =====
+
+    // ===== [PASTE PART 3 JS HERE] =====
+
+    // ===== [PASTE PART 4 JS HERE] =====
+
+    // ===== [PASTE PART 5 JS HERE] =====
+
+    // ===== [PASTE PART 6 JS HERE] =====
+
+    // Initialize App
+    checkSession();
+  </script>
 </body>
 </html>
