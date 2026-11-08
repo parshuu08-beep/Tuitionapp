@@ -1925,11 +1925,12 @@
        ========================================================================= -->
   <script>
     // =========================================================================
-    // ⚠️ IMPORTANT: PASTE YOUR SUPABASE URL & ANON KEY RIGHT HERE:
+    // ⚠️ SAFE SUPABASE INITIALIZATION (No 'const supabase' crash!)
     // =========================================================================
     const SUPABASE_URL = 'https://tkbvjgpenwsslasfdexr.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_pNv5z9WFjMn6xwFi6TJRXQ_xzPXVhbt';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    var supabase = supabaseClient;
 
     // Global State Store
     window.appConfig = {
