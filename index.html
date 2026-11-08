@@ -1588,60 +1588,68 @@
 
     // ===== PART 6 JS: PW-STYLE STUDENT & PARENT PORTAL ENGINE =====
 
+   // ===== PART 6 JS: PW-STYLE STUDENT & PARENT PORTAL ENGINE =====
+
     const stuMonthInput = document.getElementById('stuPayMonth');
     if (stuMonthInput) stuMonthInput.value = new Date().toISOString().slice(0, 7);
 
-    // Handle Student / Parent Login (Requires Secret Institute Code + Roll/Phone + PIN)
-    document.getElementById('studentLoginForm').addEventListener('submit', async (e) => {
+    // Handle Student / Parent Login (Safe Check + Saved Session)
+    document.getElementById('studentLoginForm').onsubmit = async (e) => {
       e.preventDefault();
       const loginMsg = document.getElementById('loginMsg');
       loginMsg.textContent = 'Verifying Student Credentials...';
       loginMsg.style.color = '#4F46E5';
 
       await loadInstituteSettings();
-      const enteredCode = document.getElementById('stuInstCode').value.trim().toUpperCase();
+      const codeInput = document.getElementById('stuInstCode');
+      const enteredCode = codeInput ? codeInput.value.trim().toUpperCase() : (window.appConfig.institute_code || 'APEX-2026').toUpperCase();
       const requiredCode = (window.appConfig.institute_code || 'APEX-2026').toUpperCase();
 
       if (enteredCode !== requiredCode) {
         loginMsg.style.color = '#DC2626';
-        loginMsg.textContent = '❌ Invalid Secret Institute Code! Please ask your Institute Admin.';
+        loginMsg.textContent = '❌ Invalid Secret Institute Code! Ask your Institute Admin.';
         return;
       }
 
       const idOrPhone = document.getElementById('stuLoginId').value.trim();
       const pin = document.getElementById('stuPin').value.trim();
 
-      // Lookup student by student_code OR parent_phone
-      const { data: students } = await supabase
+      const { data: students, error } = await supabase
         .from('students')
         .select('*')
         .eq('portal_pin', pin);
 
+      if (error) {
+        loginMsg.style.color = '#DC2626';
+        loginMsg.textContent = 'DB Error: ' + error.message;
+        return;
+      }
+
       const matched = (students || []).find(s =>
-        (s.student_code && s.student_code.toUpperCase() === idOrPhone.toUpperCase()) ||
-        (s.parent_phone && s.parent_phone.replace(/\s+/g, '') === idOrPhone.replace(/\s+/g, '')) ||
-        (s.phone && s.phone.replace(/\s+/g, '') === idOrPhone.replace(/\s+/g, ''))
+        (s.student_code && s.student_code.trim().toUpperCase() === idOrPhone.toUpperCase()) ||
+        (s.parent_phone && s.parent_phone.replace(/[^0-9]/g, '') === idOrPhone.replace(/[^0-9]/g, '')) ||
+        (s.full_name && s.full_name.trim().toLowerCase() === idOrPhone.toLowerCase())
       );
 
       if (!matched) {
         loginMsg.style.color = '#DC2626';
-        loginMsg.textContent = '❌ Invalid Student Roll Code / Phone or PIN!';
+        loginMsg.textContent = '❌ Invalid Roll Code / Phone or PIN!';
         return;
       }
 
       if (matched.status && matched.status !== 'active') {
         loginMsg.style.color = '#DC2626';
-        loginMsg.textContent = '🚫 Your Student Portal access has been locked by the Institute Owner.';
+        loginMsg.textContent = '🚫 Your Student Portal access has been locked by the Owner.';
         return;
       }
 
       window.activeStudent = matched;
+      localStorage.setItem('savedStudentSession', JSON.stringify(matched));
       loginMsg.textContent = '';
       document.getElementById('loginView').classList.add('hidden');
       document.getElementById('studentPortalView').classList.remove('hidden');
       loadStudentPortalDashboard();
-    });
-
+    };
     window.logoutStudentPortal = () => {
       window.activeStudent = null;
       document.getElementById('studentPortalView').classList.add('hidden');
