@@ -508,15 +508,128 @@
       </section>
 
       <!-- TAB 5: GLOBAL FEES & REMINDERS (PART 5) -->
+     <!-- TAB 5: GLOBAL FEES & REMINDERS (PART 5) -->
       <section id="feesTab" class="tab-section hidden">
-        <!-- ===== [PASTE PART 5 HTML HERE] ===== -->
-        <div class="card-box"><p>Part 5: International Fee Ledger, Polite Due Reminders (Zero Late Fee) & Approvals yahan aayega...</p></div>
+        <!-- ===== PART 5 HTML: GLOBAL FEES, DYNAMIC QR & ZERO-FINE REMINDERS ===== -->
+        <div class="card-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+            <div>
+              <h3>🌍 Global Fee Billing, Gateway Checkout & Zero-Fine Reminders</h3>
+              <p style="font-size:0.84rem; color:var(--muted); margin-top:0.2rem;">
+                Track monthly fee status, approve online parent submissions, generate instant QR/payment links, or send polite reminders (Zero late fee policy).
+              </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.6rem;">
+              <label style="font-size:0.8rem; font-weight:700; color:var(--muted);">BILLING MONTH:</label>
+              <input type="month" id="feeMonthPicker" onchange="loadFeesManager()" style="padding:0.5rem; border:1px solid var(--border); border-radius:8px; font-weight:700;">
+            </div>
+          </div>
+
+          <!-- Manual / Instant Fee Collection Form -->
+          <form id="recordFeeForm" style="background:#F8FAFC; padding:1rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.25rem;">
+            <h4 style="font-size:0.85rem; color:var(--primary); margin-bottom:0.75rem;">💳 Record Fee Payment / Generate Live Checkout</h4>
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom:0.5rem;">
+                <label>Select Student</label>
+                <select id="feeStudentSelect" required onchange="autoFillStudentFee()">
+                  <option value="">-- Choose Student --</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0.5rem;">
+                <label>Amount & Payment Gateway</label>
+                <div style="display:flex; gap:0.5rem;">
+                  <input type="number" id="feeAmountInput" required placeholder="Amount" style="width:45%;">
+                  <select id="feeMethodSelect" style="width:55%;">
+                    <option value="Stripe / Card">💳 Stripe / Card</option>
+                    <option value="PayPal">🅿️ PayPal</option>
+                    <option value="UPI / QR">📱 UPI Instant QR</option>
+                    <option value="Bank Wire / Wise">🏦 Bank Wire / IBAN</option>
+                    <option value="Cash / Office">💵 Cash / In-Office</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap; margin-top:0.5rem;">
+              <input type="text" id="feeRefInput" placeholder="Transaction Ref / UTR / Receipt Note (Optional)" style="flex:1; padding:0.65rem; border:1px solid var(--border); border-radius:8px;">
+              <button type="submit" class="btn btn-success">✅ Mark Paid & Generate Receipt</button>
+              <button type="button" class="btn" style="background:#0F172A;" onclick="openLiveCheckoutModal()">📲 Show QR / Payment Link</button>
+            </div>
+          </form>
+
+          <!-- Live QR / Multi-Gateway Modal Box (Hidden by default) -->
+          <div id="liveGatewayBox" class="card-box hidden" style="background:#EEF2FF; border:2px solid var(--primary); text-align:center;">
+            <h4 id="gwTitle" style="color:var(--primary); margin-bottom:0.5rem;">📲 Instant Student Fee Checkout</h4>
+            <div id="gwQrContainer" style="margin:0.75rem auto;"></div>
+            <p id="gwDetailsText" style="font-size:0.88rem; color:#1E293B; margin-bottom:0.75rem; white-space:pre-wrap;"></p>
+            <button class="btn btn-danger" style="padding:0.4rem 0.9rem; font-size:0.8rem;" onclick="document.getElementById('liveGatewayBox').classList.add('hidden')">Close Checkout Box</button>
+          </div>
+
+          <!-- Student Monthly Fee Status Matrix -->
+          <h4 style="font-size:0.85rem; color:var(--muted); margin-bottom:0.5rem;">STUDENT FEE STATUS FOR SELECTED MONTH (ZERO LATE-FEE POLICY)</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Student & Roll ID</th>
+                <th>Monthly Fee</th>
+                <th>Month Status</th>
+                <th>Gateway & Ref</th>
+                <th>Polite Reminder / Action</th>
+              </tr>
+            </thead>
+            <tbody id="feeStatusTableBody"></tbody>
+          </table>
+        </div>
       </section>
 
       <!-- TAB 6: NOTIFICATION CENTER (PART 5B) -->
       <section id="noticeTab" class="tab-section hidden">
-        <!-- ===== [PASTE NOTICE HTML HERE] ===== -->
-        <div class="card-box"><p>Notification Broadcast & Fee Reminder Center yahan aayega...</p></div>
+        <div class="card-box">
+          <h3>🔔 Live Notification & Broadcast Center</h3>
+          <p style="font-size:0.84rem; color:var(--muted); margin-bottom:1.25rem;">
+            Send instant announcements, test schedules, or gentle fee alerts directly to the Student & Parent Portal Bell.
+          </p>
+
+          <form id="noticeForm" style="background:#F8FAFC; padding:1rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.25rem;">
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Notification Title / Headline</label>
+                <input type="text" id="noticeTitle" required placeholder="e.g. Exam Schedule Released / Holiday Tomorrow">
+              </div>
+              <div class="form-group">
+                <label>Target Audience & Category</label>
+                <div style="display:flex; gap:0.5rem;">
+                  <select id="noticeTargetSelect" style="width:55%;">
+                    <option value="all|">🌍 All Students & Parents</option>
+                  </select>
+                  <select id="noticeCatSelect" style="width:45%;">
+                    <option value="notice">📢 General Notice</option>
+                    <option value="academic">📚 Academic / Test</option>
+                    <option value="fee_reminder">💳 Gentle Fee Reminder</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Message Body</label>
+              <textarea id="noticeBody" rows="3" required placeholder="Type the announcement details here..."></textarea>
+            </div>
+            <button type="submit" class="btn">🚀 Broadcast Live Notification</button>
+          </form>
+
+          <h4 style="font-size:0.85rem; color:var(--muted);">ACTIVE NOTIFICATIONS HISTORY</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Title & Message</th>
+                <th>Target</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="noticeTableBody"></tbody>
+          </table>
+        </div>
       </section>
     </main>
   </div>
@@ -1136,7 +1249,230 @@
     // Auto-load batches when Smart Attendance tab is clicked
     document.querySelectorAll('.nav-btn')[3].addEventListener('click', initAttendanceTab);
 
-    // ===== [PASTE PART 5 JS HERE] =====
+    // ===== PART 5 JS: GLOBAL FEES, DYNAMIC QR, ZERO-FINE REMINDERS & NOTIFICATIONS =====
+
+    const feeMonthEl = document.getElementById('feeMonthPicker');
+    if (feeMonthEl) feeMonthEl.value = new Date().toISOString().slice(0, 7);
+
+    window.autoFillStudentFee = () => {
+      const stuId = document.getElementById('feeStudentSelect').value;
+      const stu = (window.allStudents || []).find(s => s.id === stuId);
+      if (stu) document.getElementById('feeAmountInput').value = stu.monthly_fee || 0;
+    };
+
+    window.loadFeesManager = async () => {
+      await loadInstituteSettings();
+      const sym = window.appConfig.currency_symbol || '$';
+      const monthStr = document.getElementById('feeMonthPicker').value || new Date().toISOString().slice(0, 7);
+
+      const { data: students } = await supabase.from('students').select('*').eq('status', 'active').order('full_name');
+      window.allStudents = students || [];
+
+      const sel = document.getElementById('feeStudentSelect');
+      const curStu = sel.value;
+      sel.innerHTML = '<option value="">-- Choose Student --</option>' + (students || []).map(s => `<option value="${s.id}">${s.full_name} (${s.student_code || 'STU'}) — ${sym}${s.monthly_fee || 0}</option>`).join('');
+      if (curStu) sel.value = curStu;
+
+      const { data: fees } = await supabase.from('fees').select('*').eq('month_year', monthStr);
+      const feeMap = {};
+      (fees || []).forEach(f => feeMap[f.student_id] = f);
+
+      const tbody = document.getElementById('feeStatusTableBody');
+      if (!students || !students.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted);">No active students found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = students.map(s => {
+        const f = feeMap[s.id];
+        const isPaid = f && f.approval_status === 'approved';
+        const isPending = f && f.approval_status === 'pending';
+
+        return `
+          <tr>
+            <td><b>${s.full_name}</b><br><code style="font-size:0.78rem; color:var(--primary);">${s.student_code || 'STU'}</code></td>
+            <td><b>${sym}${s.monthly_fee || 0}</b><br><span style="font-size:0.72rem; color:#16A34A;">$0 Late Fine</span></td>
+            <td>
+              ${isPaid
+                ? `<span class="badge" style="background:#DCFCE7; color:#166534;">✅ PAID (${monthStr})</span>`
+                : isPending
+                ? `<span class="badge" style="background:#FEF3C7; color:#92400E;">⏳ PENDING APPROVAL</span>`
+                : `<span class="badge" style="background:#FEE2E2; color:#991B1B;">⏳ UNPAID (${monthStr})</span>`
+              }
+            </td>
+            <td>
+              ${f ? `<b>${f.payment_method || 'Online'}</b><br><code style="font-size:0.75rem;">${f.transaction_ref || 'Verified'}</code>` : '<span style="color:var(--muted);">—</span>'}
+            </td>
+            <td>
+              ${isPending ? `
+                <button class="btn btn-success" style="padding:0.35rem 0.65rem; font-size:0.76rem;" onclick="approveFeeSubmission('${f.id}')">✅ Approve</button>
+                <button class="btn btn-danger" style="padding:0.35rem 0.65rem; font-size:0.76rem;" onclick="deleteRecord('fees','${f.id}'); setTimeout(loadFeesManager,300);">❌ Reject</button>
+              ` : !isPaid ? `
+                <button class="btn btn-warning" style="padding:0.35rem 0.7rem; font-size:0.76rem;" onclick="sendPoliteFeeReminder('${s.id}','${s.full_name.replace(/'/g,"")}','${s.parent_phone||''}',${s.monthly_fee||0},'${monthStr}')">
+                  🔔 Send Gentle Reminder
+                </button>
+              ` : `
+                <button class="btn" style="padding:0.35rem 0.7rem; font-size:0.76rem; background:#0F172A;" onclick="printFeeInvoice('${s.full_name.replace(/'/g,"")}','${s.student_code||'STU'}',${f.amount},'${monthStr}','${f.payment_method}','${f.transaction_ref||'N/A'}')">
+                  🧾 Invoice
+                </button>
+              `}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    };
+
+    // Record Direct Payment by Owner
+    document.getElementById('recordFeeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const student_id = document.getElementById('feeStudentSelect').value;
+      const amount = Number(document.getElementById('feeAmountInput').value) || 0;
+      const payment_method = document.getElementById('feeMethodSelect').value;
+      const transaction_ref = document.getElementById('feeRefInput').value.trim() || ('REC-' + Date.now().toString().slice(-5));
+      const month_year = document.getElementById('feeMonthPicker').value || new Date().toISOString().slice(0, 7);
+
+      await supabase.from('fees').insert([{
+        student_id,
+        amount,
+        month_year,
+        payment_method,
+        transaction_ref,
+        status: 'paid',
+        approval_status: 'approved'
+      }]);
+
+      document.getElementById('feeRefInput').value = '';
+      loadFeesManager();
+      loadOverviewStats();
+    });
+
+    window.approveFeeSubmission = async (feeId) => {
+      await supabase.from('fees').update({ approval_status: 'approved', status: 'paid' }).eq('id', feeId);
+      loadFeesManager();
+      loadOverviewStats();
+    };
+
+    // Show Dynamic UPI QR / Stripe / PayPal / Bank Box
+    window.openLiveCheckoutModal = () => {
+      const stuId = document.getElementById('feeStudentSelect').value;
+      const amt = document.getElementById('feeAmountInput').value || 0;
+      const c = window.appConfig;
+      const sym = c.currency_symbol || '$';
+      const box = document.getElementById('liveGatewayBox');
+      const qrDiv = document.getElementById('gwQrContainer');
+      const txt = document.getElementById('gwDetailsText');
+
+      box.classList.remove('hidden');
+      qrDiv.innerHTML = '';
+
+      if (c.upi_id) {
+        const upiUrl = `upi://pay?pa=${encodeURIComponent(c.upi_id)}&pn=${encodeURIComponent(c.institute_name)}&am=${amt}&cu=INR`;
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiUrl)}`;
+        qrDiv.innerHTML = `<img src="${qrImg}" alt="UPI QR" style="border-radius:10px; border:4px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.08);">`;
+      }
+
+      let linksHtml = `Amount Due: ${sym}${amt} (Zero Late Fee)\n`;
+      if (c.stripe_link) linksHtml += `💳 Stripe Card Link: ${c.stripe_link}\n`;
+      if (c.paypal_link) linksHtml += `🅿️ PayPal Link: ${c.paypal_link}\n`;
+      if (c.upi_id) linksHtml += `📱 UPI ID: ${c.upi_id}\n`;
+      if (c.bank_details) linksHtml += `🏦 Bank / IBAN: ${c.bank_details}`;
+      txt.textContent = linksHtml;
+    };
+
+    // Polite Zero-Fine Fee Reminder (Portal Bell + WhatsApp)
+    window.sendPoliteFeeReminder = async (studentId, studentName, parentPhone, amount, monthStr) => {
+      const c = window.appConfig;
+      const sym = c.currency_symbol || '$';
+      let payOptions = '';
+      if (c.stripe_link) payOptions += ` Stripe: ${c.stripe_link} |`;
+      if (c.paypal_link) payOptions += ` PayPal: ${c.paypal_link} |`;
+      if (c.upi_id) payOptions += ` UPI: ${c.upi_id}`;
+
+      const msg = `Gentle Reminder from ${c.institute_name}: The monthly tuition fee of ${sym}${amount} for ${studentName} (${monthStr}) is currently due. Kindly note there are NO late fee charges. You may conveniently complete the payment via the Student Portal.${payOptions}`;
+
+      await supabase.from('notifications').insert([{
+        title: `💳 Gentle Fee Reminder (${monthStr} — No Late Fine)`,
+        message: msg,
+        target_type: 'student',
+        target_id: studentId,
+        category: 'fee_reminder'
+      }]);
+
+      loadOverviewStats();
+      const cleanPhone = (parentPhone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone) {
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+      } else {
+        alert('✅ Polite Fee Reminder sent to Student & Parent Portal Bell!');
+      }
+    };
+
+    // Printable Official Fee Invoice
+    window.printFeeInvoice = (name, code, amount, month, method, ref) => {
+      const c = window.appConfig;
+      const w = window.open('', '_blank', 'width=650,height=600');
+      w.document.write(`
+        <html><head><title>Fee Invoice - ${code}</title></head>
+        <body style="font-family:sans-serif; padding:2rem; color:#0F172A;">
+          <div style="border:2px solid #4F46E5; border-radius:12px; padding:1.5rem;">
+            <h2 style="color:#4F46E5; margin:0;">🎓 ${c.institute_name} — Official Fee Receipt</h2>
+            <p style="color:#64748B; font-size:0.85rem;">International Tuition & Academic Billing Invoice</p>
+            <hr style="margin:1rem 0; border:none; border-top:1px solid #E2E8F0;">
+            <p><b>Student Name:</b> ${name} (${code})</p>
+            <p><b>Billing Month:</b> ${month}</p>
+            <p><b>Amount Paid:</b> ${c.currency_symbol}${amount} (${c.currency_code})</p>
+            <p><b>Late Fine Applied:</b> ${c.currency_symbol}0.00 (Zero Late-Fee Policy)</p>
+            <p><b>Payment Method:</b> ${method}</p>
+            <p><b>Transaction Ref:</b> ${ref}</p>
+            <p><b>Status:</b> APPROVED & VERIFIED</p>
+            <hr style="margin:1rem 0; border:none; border-top:1px solid #E2E8F0;">
+            <button onclick="window.print()" style="background:#4F46E5; color:#fff; border:none; padding:0.6rem 1.2rem; border-radius:6px; cursor:pointer;">🖨️ Print / Save PDF</button>
+          </div>
+        </body></html>
+      `);
+      w.document.close();
+    };
+
+    // NOTIFICATION BROADCAST ENGINE
+    async function loadNotificationsCenter() {
+      const { data: batches } = await supabase.from('batches').select('*');
+      const { data: students } = await supabase.from('students').select('*').eq('status', 'active');
+
+      const targetSel = document.getElementById('noticeTargetSelect');
+      targetSel.innerHTML = '<option value="all|">🌍 All Students & Parents</option>' +
+        (batches || []).map(b => `<option value="batch|${b.id}">📚 Batch: ${b.name}</option>`).join('') +
+        (students || []).map(s => `<option value="student|${s.id}">👨‍🎓 Student: ${s.full_name} (${s.student_code||'STU'})</option>`).join('');
+
+      const { data: notices } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
+      document.getElementById('noticeTableBody').innerHTML = (notices || []).map(n => `
+        <tr>
+          <td style="font-size:0.8rem; color:var(--muted);">${new Date(n.created_at).toLocaleDateString()}</td>
+          <td><span class="badge" style="background:#EEF2FF; color:var(--primary);">${(n.category||'notice').toUpperCase()}</span></td>
+          <td><b>${n.title}</b><br><span style="font-size:0.82rem; color:#334155;">${n.message}</span></td>
+          <td><code>${n.target_type.toUpperCase()}</code></td>
+          <td><button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteRecord('notifications','${n.id}'); setTimeout(loadNotificationsCenter,300);">🗑️</button></td>
+        </tr>
+      `).join('');
+    }
+    window.loadNotificationsCenter = loadNotificationsCenter;
+
+    document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const [target_type, target_id] = document.getElementById('noticeTargetSelect').value.split('|');
+      await supabase.from('notifications').insert([{
+        title: document.getElementById('noticeTitle').value.trim(),
+        message: document.getElementById('noticeBody').value.trim(),
+        category: document.getElementById('noticeCatSelect').value,
+        target_type,
+        target_id: target_id || ''
+      }]);
+      e.target.reset();
+      loadNotificationsCenter();
+      loadOverviewStats();
+    });
+
+    document.getElementById('navFeesBtn').addEventListener('click', loadFeesManager);
+    document.getElementById('navNoticeBtn').addEventListener('click', loadNotificationsCenter);
 
     // ===== [PASTE PART 6 JS HERE] =====
 
