@@ -454,8 +454,57 @@
 
       <!-- TAB 4: SMART ATTENDANCE (PART 4) -->
       <section id="attendanceTab" class="tab-section hidden">
-        <!-- ===== [PASTE PART 4 HTML HERE] ===== -->
-        <div class="card-box"><p>Part 4: Attendance & Automated Parent Alert yahan aayega...</p></div>
+        <!-- ===== PART 4 HTML: SMART ATTENDANCE & PARENT ALERT ENGINE ===== -->
+        <div class="card-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.25rem;">
+            <div>
+              <h3>✅ Daily Smart Attendance & Parent Alert Engine</h3>
+              <p style="font-size:0.84rem; color:var(--muted); margin-top:0.2rem;">
+                Select a batch and date to mark Present/Absent. Instant WhatsApp & Portal Alerts trigger for absent students.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.5rem;">
+              <button class="btn btn-success" onclick="markAllAttendance('present')" style="padding:0.55rem 0.9rem; font-size:0.82rem;">✅ Mark All Present</button>
+            </div>
+          </div>
+
+          <!-- Filter Bar: Select Batch & Date -->
+          <div class="grid-2" style="background:#F8FAFC; padding:1rem; border-radius:10px; border:1px solid var(--border); margin-bottom:1.25rem;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>1. Select Batch / Classroom</label>
+              <select id="attBatchSelect" onchange="loadAttendanceRoster()">
+                <option value="">-- Choose Batch --</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>2. Attendance Date</label>
+              <input type="date" id="attDateInput" onchange="loadAttendanceRoster()">
+            </div>
+          </div>
+
+          <!-- Live Attendance Summary Pills -->
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-bottom:1rem;">
+            <span class="badge" style="background:#EEF2FF; color:var(--primary); font-size:0.85rem; padding:0.4rem 0.85rem;">Total in Batch: <b id="attTotalCount">0</b></span>
+            <span class="badge" style="background:#DCFCE7; color:#166534; font-size:0.85rem; padding:0.4rem 0.85rem;">Present Today: <b id="attPresentCount">0</b></span>
+            <span class="badge" style="background:#FEE2E2; color:#991B1B; font-size:0.85rem; padding:0.4rem 0.85rem;">Absent Today: <b id="attAbsentCount">0</b></span>
+          </div>
+
+          <!-- Attendance Roster Table -->
+          <table>
+            <thead>
+              <tr>
+                <th>Roll ID & Student Name</th>
+                <th>Overall Attendance %</th>
+                <th>Today's Status</th>
+                <th>Mark Attendance</th>
+                <th>Parent Alert (WhatsApp + Portal)</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceTableBody">
+              <tr><td colspan="5" style="text-align:center; color:var(--muted);">Select a Batch above to load students...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- TAB 5: GLOBAL FEES & REMINDERS (PART 5) -->
@@ -937,7 +986,155 @@
     // Load Part 3 data whenever Batches & Students tab is opened
     document.querySelectorAll('.nav-btn')[2].addEventListener('click', loadPart3Data);
 
-    // ===== [PASTE PART 4 JS HERE] =====
+    // ===== PART 4 JS: SMART ATTENDANCE & PARENT WHATSAPP ALERT =====
+
+    // Initialize default date to Today
+    const attDateEl = document.getElementById('attDateInput');
+    if (attDateEl) attDateEl.value = new Date().toISOString().split('T')[0];
+
+    async function initAttendanceTab() {
+      await loadInstituteSettings();
+      const { data: batches } = await supabase.from('batches').select('*').order('created_at');
+      const sel = document.getElementById('attBatchSelect');
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">-- Choose Batch --</option>' + (batches || []).map(b => `<option value="${b.id}">${b.name} (${b.subject || ''})</option>`).join('');
+      if (currentVal) sel.value = currentVal;
+      if (sel.value) loadAttendanceRoster();
+    }
+
+    window.loadAttendanceRoster = async () => {
+      const batchId = document.getElementById('attBatchSelect').value;
+      const dateStr = document.getElementById('attDateInput').value;
+      const tbody = document.getElementById('attendanceTableBody');
+
+      if (!batchId || !dateStr) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted);">Please select a Batch and Date above...</td></tr>';
+        return;
+      }
+
+      // 1. Get active students in this batch
+      const { data: students } = await supabase.from('students').select('*').eq('batch_id', batchId).eq('status', 'active').order('full_name');
+      // 2. Get all attendance records for this batch (to calculate overall % and today's status)
+      const { data: allAtt } = await supabase.from('attendance').select('*').eq('batch_id', batchId);
+
+      const todayMap = {};
+      const statsMap = {};
+      (allAtt || []).forEach(r => {
+        if (!statsMap[r.student_id]) statsMap[r.student_id] = { total: 0, present: 0 };
+        statsMap[r.student_id].total++;
+        if (r.status === 'present') statsMap[r.student_id].present++;
+        if (r.date === dateStr) todayMap[r.student_id] = r.status;
+      });
+
+      let pCount = 0, aCount = 0;
+      const minPct = Number(window.appConfig.min_attendance_pct || 75);
+
+      if (!students || students.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted);">No active students enrolled in this batch yet.</td></tr>';
+        document.getElementById('attTotalCount').textContent = 0;
+        document.getElementById('attPresentCount').textContent = 0;
+        document.getElementById('attAbsentCount').textContent = 0;
+        return;
+      }
+
+      window.currentBatchStudents = students;
+
+      tbody.innerHTML = students.map(s => {
+        const todayStatus = todayMap[s.id] || 'unmarked';
+        if (todayStatus === 'present') pCount++;
+        if (todayStatus === 'absent') aCount++;
+
+        const st = statsMap[s.id] || { total: 0, present: 0 };
+        const pct = st.total > 0 ? Math.round((st.present / st.total) * 100) : 100;
+        const lowAtt = pct < minPct;
+
+        return `
+          <tr>
+            <td><b>${s.full_name}</b><br><code style="font-size:0.78rem; color:var(--primary);">${s.student_code || 'STU'}</code></td>
+            <td>
+              <span class="badge" style="background:${lowAtt?'#FEE2E2':'#DCFCE7'}; color:${lowAtt?'#991B1B':'#166534'};">
+                ${pct}% (${st.present}/${st.total} days)
+              </span>
+              ${lowAtt ? `<br><span style="font-size:0.72rem; color:#DC2626; font-weight:700;">⚠️ Below ${minPct}% Rule</span>` : ''}
+            </td>
+            <td>
+              <span class="badge" style="background:${todayStatus==='present'?'#DCFCE7':todayStatus==='absent'?'#FEE2E2':'#F1F5F9'}; color:${todayStatus==='present'?'#166534':todayStatus==='absent'?'#991B1B':'#64748B'};">
+                ${todayStatus.toUpperCase()}
+              </span>
+            </td>
+            <td>
+              <button class="btn btn-success" style="padding:0.38rem 0.7rem; font-size:0.78rem;" onclick="setStudentAttendance('${s.id}','present')">Present</button>
+              <button class="btn btn-danger" style="padding:0.38rem 0.7rem; font-size:0.78rem;" onclick="setStudentAttendance('${s.id}','absent')">Absent</button>
+            </td>
+            <td>
+              ${todayStatus === 'absent' ? `
+                <button class="btn btn-warning" style="padding:0.38rem 0.7rem; font-size:0.78rem;" onclick="sendAbsentAlert('${s.id}','${s.full_name.replace(/'/g,"")}','${s.parent_phone||''}','${dateStr}')">
+                  📲 Send Absent Alert
+                </button>
+              ` : '<span style="font-size:0.78rem; color:var(--muted);">—</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('attTotalCount').textContent = students.length;
+      document.getElementById('attPresentCount').textContent = pCount;
+      document.getElementById('attAbsentCount').textContent = aCount;
+    };
+
+    window.setStudentAttendance = async (studentId, status) => {
+      const batchId = document.getElementById('attBatchSelect').value;
+      const dateStr = document.getElementById('attDateInput').value;
+      await supabase.from('attendance').upsert([{
+        student_id: studentId,
+        batch_id: batchId,
+        date: dateStr,
+        status
+      }], { onConflict: 'student_id,date' });
+      loadAttendanceRoster();
+    };
+
+    window.markAllAttendance = async (status) => {
+      const batchId = document.getElementById('attBatchSelect').value;
+      const dateStr = document.getElementById('attDateInput').value;
+      if (!batchId || !window.currentBatchStudents || !window.currentBatchStudents.length) {
+        return alert('Select a batch with active students first!');
+      }
+      const rows = window.currentBatchStudents.map(s => ({
+        student_id: s.id,
+        batch_id: batchId,
+        date: dateStr,
+        status
+      }));
+      await supabase.from('attendance').upsert(rows, { onConflict: 'student_id,date' });
+      loadAttendanceRoster();
+    };
+
+    // Send 1-Click Parent WhatsApp + Portal Notification when Absent
+    window.sendAbsentAlert = async (studentId, studentName, parentPhone, dateStr) => {
+      const inst = window.appConfig.institute_name || 'Global Apex Academy';
+      const msgText = `Dear Parent, your ward ${studentName} was marked ABSENT for today's class (${dateStr}) at ${inst}. Minimum ${window.appConfig.min_attendance_pct || 75}% attendance is mandatory.`;
+
+      // 1. Push Live Notification to Student/Parent Portal Bell
+      await supabase.from('notifications').insert([{
+        title: `⚠️ Absent Alert (${dateStr})`,
+        message: msgText,
+        target_type: 'student',
+        target_id: studentId,
+        category: 'academic'
+      }]);
+
+      // 2. Open WhatsApp with pre-filled international message if phone exists
+      const cleanPhone = (parentPhone || '').replace(/[^0-9]/g, '');
+      if (cleanPhone) {
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msgText)}`, '_blank');
+      } else {
+        alert('✅ Absent notification sent to Student/Parent App Portal!');
+      }
+    };
+
+    // Auto-load batches when Smart Attendance tab is clicked
+    document.querySelectorAll('.nav-btn')[3].addEventListener('click', initAttendanceTab);
 
     // ===== [PASTE PART 5 JS HERE] =====
 
