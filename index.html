@@ -683,7 +683,259 @@
       }
     });
 
-    // ===== [PASTE PART 3 JS HERE] =====
+    // ===== PART 3 JS: SECRET CODE, FACULTY CONTROL, HOMEWORK & STUDENT CRM =====
+
+    // Update Role Switcher on Login Screen so Faculty asks for Secret Institute Code + PIN
+    const origSwitchAuthRole = window.switchAuthRole;
+    window.switchAuthRole = (role, btnEl) => {
+      origSwitchAuthRole(role, btnEl);
+      const codeBox = document.getElementById('instCodeGroupStaff');
+      const emailInput = document.getElementById('email');
+      const passLabel = document.getElementById('staffPassLabel');
+      if (role === 'teacher') {
+        codeBox.classList.remove('hidden');
+        emailInput.type = 'text';
+        emailInput.placeholder = 'teacher1@inst.com or Phone';
+        passLabel.textContent = 'Teacher Access PIN';
+      } else if (role === 'owner') {
+        codeBox.classList.add('hidden');
+        emailInput.type = 'email';
+        emailInput.placeholder = 'admin@institute.com';
+        passLabel.textContent = 'Owner Password';
+      }
+    };
+
+    // Intercept Staff Login Form to handle both Owner (Supabase Auth) and Faculty (PIN + Institute Code + Block Check)
+    document.getElementById('staffLoginForm').onsubmit = async (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      const loginMsg = document.getElementById('loginMsg');
+      loginMsg.textContent = '';
+
+      if (window.currentSelectedRole === 'teacher') {
+        const enteredCode = document.getElementById('staffInstCode').value.trim();
+        const loginId = document.getElementById('email').value.trim();
+        const pin = document.getElementById('password').value.trim();
+
+        await loadInstituteSettings();
+        if (enteredCode !== (window.appConfig.institute_code || 'APEX-2026')) {
+          loginMsg.style.color = '#DC2626';
+          loginMsg.textContent = '❌ Invalid Secret Institute Code! Access Denied.';
+          return;
+        }
+
+        const { data: fac } = await supabase.from('faculty').select('*').eq('email_or_phone', loginId).eq('access_pin', pin).single();
+        if (!fac) {
+          loginMsg.style.color = '#DC2626';
+          loginMsg.textContent = '❌ Invalid Teacher ID or PIN!';
+          return;
+        }
+        if (fac.status === 'blocked') {
+          loginMsg.style.color = '#DC2626';
+          loginMsg.textContent = '🚫 Your Faculty Account has been suspended by the Institute Owner.';
+          return;
+        }
+
+        // Log in Faculty Session
+        window.activeFaculty = fac;
+        document.getElementById('loginView').classList.add('hidden');
+        document.getElementById('appView').classList.remove('hidden');
+        document.getElementById('userEmailBadge').textContent = `👨‍🏫 ${fac.full_name} (${fac.subject})`;
+        document.getElementById('roleBadgeText').textContent = 'FACULTY PORTAL';
+        document.getElementById('ownerCodeCard').classList.add('hidden');
+        document.getElementById('facultyManagerCard').classList.add('hidden');
+        loadOverviewStats();
+        loadPart3Data();
+      } else {
+        // Owner Login via Supabase Auth
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          loginMsg.style.color = '#DC2626';
+          loginMsg.textContent = error.message;
+        } else {
+          window.activeFaculty = null;
+          document.getElementById('ownerCodeCard').classList.remove('hidden');
+          document.getElementById('facultyManagerCard').classList.remove('hidden');
+          checkSession();
+          loadPart3Data();
+        }
+      }
+    };
+
+    // Update Secret Institute Code (Owner Only)
+    window.updateInstituteCode = async () => {
+      const newCode = document.getElementById('newInstCodeInput').value.trim().toUpperCase();
+      if (!newCode) return alert('Enter a valid code!');
+      await supabase.from('institute_settings').update({ institute_code: newCode }).eq('id', 1);
+      document.getElementById('displayInstCode').textContent = newCode;
+      window.appConfig.institute_code = newCode;
+      document.getElementById('newInstCodeInput').value = '';
+      alert('✅ Secret Institute Code updated to: ' + newCode);
+    };
+
+    // Load Batches, Faculty, Homework & Students
+    async function loadPart3Data() {
+      await loadInstituteSettings();
+      const sym = window.appConfig.currency_symbol || '$';
+      document.getElementById('displayInstCode').textContent = window.appConfig.institute_code || 'APEX-2026';
+
+      // 1. Batches
+      const { data: batches } = await supabase.from('batches').select('*').order('created_at');
+      window.allBatches = batches || [];
+      const batchMap = {};
+      (batches || []).forEach(b => batchMap[b.id] = b.name);
+
+      document.getElementById('batchTableBody').innerHTML = (batches || []).map(b => `
+        <tr>
+          <td><b>${b.name}</b></td>
+          <td>${b.subject || '-'}</td>
+          <td>${b.timing || '-'}</td>
+          <td>${!window.activeFaculty ? `<button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteRecord('batches','${b.id}')">🗑️ Delete</button>` : '-'}</td>
+        </tr>
+      `).join('');
+
+      const batchOptions = '<option value="">Select Batch...</option>' + (batches || []).map(b => `<option value="${b.id}">${b.name} (${b.subject})</option>`).join('');
+      document.getElementById('stuBatchSelect').innerHTML = batchOptions;
+      document.getElementById('matBatchSelect').innerHTML = batchOptions;
+
+      // 2. Faculty Roster (Owner Power: Block / Unblock / Delete)
+      const { data: facultyList } = await supabase.from('faculty').select('*').order('created_at');
+      document.getElementById('facultyTableBody').innerHTML = (facultyList || []).map(f => `
+        <tr>
+          <td><b>${f.full_name}</b><br><span style="font-size:0.78rem; color:var(--muted);">${f.subject}</span></td>
+          <td><code>${f.email_or_phone}</code><br><span style="font-size:0.78rem;">PIN: <b>${f.access_pin}</b></span></td>
+          <td><span class="badge" style="background:${f.status==='active'?'#DCFCE7':'#FEE2E2'}; color:${f.status==='active'?'#166534':'#991B1B'};">${f.status.toUpperCase()}</span></td>
+          <td>
+            <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:${f.status==='active'?'#D97706':'#16A34A'};" onclick="toggleFacultyStatus('${f.id}','${f.status}')">
+              ${f.status==='active' ? '🚫 Block' : '✅ Activate'}
+            </button>
+            <button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteRecord('faculty','${f.id}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // 3. Homework & Study Materials
+      const { data: materials } = await supabase.from('study_materials').select('*').order('created_at', { ascending: false });
+      document.getElementById('materialTableBody').innerHTML = (materials || []).map(m => `
+        <tr>
+          <td><b>${batchMap[m.batch_id] || 'All'}</b></td>
+          <td><span class="badge" style="background:#EEF2FF; color:var(--primary);">${m.material_type.toUpperCase()}</span></td>
+          <td><b>${m.title}</b><br><span style="font-size:0.78rem; color:var(--muted);">${m.subject}</span></td>
+          <td>${m.content_or_link.startsWith('http') ? `<a href="${m.content_or_link}" target="_blank" style="color:var(--primary); font-weight:600;">🔗 Open Link</a>` : m.content_or_link}</td>
+          <td>${m.faculty_name}</td>
+          <td><button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteRecord('study_materials','${m.id}')">🗑️</button></td>
+        </tr>
+      `).join('');
+
+      // 4. Students Roster (Owner Power: Block/Left vs Active + Delete)
+      const { data: students } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+      window.allStudents = students || [];
+      document.getElementById('studentTableBody').innerHTML = (students || []).map(s => `
+        <tr>
+          <td><b>${s.full_name}</b><br><code style="font-size:0.78rem; color:var(--primary);">${s.student_code || 'STU'}</code></td>
+          <td>${batchMap[s.batch_id] || 'Unassigned'}</td>
+          <td>${s.parent_phone || '-'}</td>
+          <td><b>${sym}${s.monthly_fee || 0}</b></td>
+          <td><code>${s.portal_pin || '1234'}</code></td>
+          <td><span class="badge" style="background:${s.status==='active'?'#DCFCE7':'#FEE2E2'}; color:${s.status==='active'?'#166534':'#991B1B'};">${(s.status||'active').toUpperCase()}</span></td>
+          <td>
+            ${!window.activeFaculty ? `
+              <button class="btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; background:${s.status==='active'?'#D97706':'#16A34A'};" onclick="toggleStudentStatus('${s.id}','${s.status||'active'}')">
+                ${s.status==='active' ? '🚫 Mark Left/Block' : '✅ Re-Admit'}
+              </button>
+              <button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.75rem;" onclick="deleteRecord('students','${s.id}')">🗑️</button>
+            ` : '<span style="font-size:0.78rem; color:var(--muted);">Owner Only</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+    window.loadPart3Data = loadPart3Data;
+
+    // Form Submissions: Batch, Faculty, Homework, Student
+    document.getElementById('batchForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await supabase.from('batches').insert([{
+        name: document.getElementById('batchName').value.trim(),
+        subject: document.getElementById('batchSubject').value.trim(),
+        timing: document.getElementById('batchTiming').value.trim()
+      }]);
+      e.target.reset();
+      loadPart3Data();
+      loadOverviewStats();
+    });
+
+    document.getElementById('facultyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const { error } = await supabase.from('faculty').insert([{
+        full_name: document.getElementById('facName').value.trim(),
+        subject: document.getElementById('facSubject').value.trim(),
+        email_or_phone: document.getElementById('facLoginId').value.trim(),
+        access_pin: document.getElementById('facPin').value.trim(),
+        status: 'active'
+      }]);
+      if (error) alert('Error: ' + error.message);
+      else { e.target.reset(); loadPart3Data(); }
+    });
+
+    document.getElementById('materialForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const sender = window.activeFaculty ? window.activeFaculty.full_name : 'Institute Admin';
+      await supabase.from('study_materials').insert([{
+        batch_id: document.getElementById('matBatchSelect').value,
+        material_type: document.getElementById('matType').value,
+        subject: document.getElementById('matSubject').value.trim(),
+        title: document.getElementById('matTitle').value.trim(),
+        content_or_link: document.getElementById('matContent').value.trim(),
+        faculty_name: sender
+      }]);
+      e.target.reset();
+      loadPart3Data();
+    });
+
+    document.getElementById('studentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (window.activeFaculty && !window.appConfig.allow_teacher_student_edit) {
+        return alert('🚫 Only the Institute Owner has permission to admit students.');
+      }
+      await supabase.from('students').insert([{
+        full_name: document.getElementById('stuName').value.trim(),
+        batch_id: document.getElementById('stuBatchSelect').value,
+        student_code: document.getElementById('stuCode').value.trim().toUpperCase(),
+        parent_phone: document.getElementById('stuParentPhone').value.trim(),
+        monthly_fee: Number(document.getElementById('stuFee').value) || 0,
+        portal_pin: document.getElementById('stuPinInput').value.trim() || '1234',
+        status: 'active'
+      }]);
+      e.target.reset();
+      loadPart3Data();
+      loadOverviewStats();
+    });
+
+    // Owner Kill-Switch Actions (Block/Unblock & Delete)
+    window.toggleFacultyStatus = async (id, current) => {
+      const next = current === 'active' ? 'blocked' : 'active';
+      await supabase.from('faculty').update({ status: next }).eq('id', id);
+      loadPart3Data();
+    };
+
+    window.toggleStudentStatus = async (id, current) => {
+      const next = current === 'active' ? 'left' : 'active';
+      await supabase.from('students').update({ status: next }).eq('id', id);
+      loadPart3Data();
+      loadOverviewStats();
+    };
+
+    window.deleteRecord = async (table, id) => {
+      if (!confirm('Are you sure you want to permanently delete this record?')) return;
+      await supabase.from(table).delete().eq('id', id);
+      loadPart3Data();
+      loadOverviewStats();
+    };
+
+    // Load Part 3 data whenever Batches & Students tab is opened
+    document.querySelectorAll('.nav-btn')[2].addEventListener('click', loadPart3Data);
 
     // ===== [PASTE PART 4 JS HERE] =====
 
